@@ -1,3 +1,50 @@
+# [StyleGAN2-ADA-PyTorch](https://github.com/NVlabs/stylegan2-ada-pytorch) with [Image Generation and Evaluation](https://github.com/tuallen/noise_metrics-stylegan2-ada-pytorch) Pipeline
+### Allen Tu, Hari Shanmugaraja, Calle Carlson, Sathvik Ravi, Aminah Yizar, Yuming Huang
+![Paper image](./docs/noise_metrics.png)
+
+Fork of [NVlabs/stylegan2-ada-pytorch](https://github.com/NVlabs/stylegan2-ada-pytorch) with the [Image Generation and Evaluation](https://github.com/harishanmugaraja/Evaluation-of-Generation-Metrics/tree/main/Image%20Generation%20and%20Evaluation) pipeline from [harishanmugaraja/Evaluation-of-Generation-Metrics](https://github.com/tuallen/noise_metrics-stylegan2-ada-pytorch). The pipeline for StyleGAN2's `generate.py` is as follows:
+
+1. ```noise_metrics.py``` is added to the source directory.
+3. ```import noise_metrics``` is added to the top of `generate.py`.
+4. Initialize StyleGAN2 and load the pretrained weights.
+5. Add Gaussian noise to the loaded weights using ```noise_metrics.add_noise(model, noise_variance=0)```.
+6. Generate the same number of images as the training data. Images are saved in `--outdir`.
+7. Calculate the metrics using ```noise_metrics.calculate_metrics(dir, traindir, noise_variance=None)```. The scores will be saved in ```[--outdir]/desc.json```.
+
+## Setup
+1. Install the requirements for StyleGAN2.
+2. `pip install torch-fidelity`
+## Generating Images
+Generated images are saved in `--outdir`. After image generation is finished, the metrics for the distribution will be calculated and saved in `[--outdir]/desc.json`.
+
+Two new arguments are added to `generate.py`:
+* `--traindir`: Directory with the training images
+* `--noise_variance=0`: Variance of the Gaussian noise that will be added to the model parameters. The default value is 0, which does not modify the model.
+
+Examples with the two new arguments are listed below
+
+```.bash
+# Generate curated MetFaces images without truncation, Gaussian noise with variance of 0.2 (Fig.10 left)
+python generate.py --outdir=out --trunc=1 --seeds=85,265,297,849 \
+    --network=https://nvlabs-fi-cdn.nvidia.com/stylegan2-ada-pytorch/pretrained/metfaces.pkl \
+    --traindir=train --noise_variance=0.2
+
+# Generate uncurated MetFaces images with truncation, no Gaussian noise added (Fig.12 upper left)
+python generate.py --outdir=out --trunc=0.7 --seeds=600-605 \
+    --network=https://nvlabs-fi-cdn.nvidia.com/stylegan2-ada-pytorch/pretrained/metfaces.pkl \
+    --traindir=train --noise_variance=0
+
+# Generate class conditional CIFAR-10 images, no Gaussian noise added (Fig.17 left, Car)
+python generate.py --outdir=out --seeds=0-35 --class=1 \
+    --network=https://nvlabs-fi-cdn.nvidia.com/stylegan2-ada-pytorch/pretrained/cifar10.pkl \
+    --traindir=train
+```
+
+
+
+
+# Original README
+
 ## StyleGAN2-ADA &mdash; Official PyTorch implementation
 
 ![Teaser image](./docs/stylegan2-ada-teaser-1024x252.png)
