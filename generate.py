@@ -20,6 +20,8 @@ import torch
 
 import legacy
 
+import noise_metrics # New package
+
 #----------------------------------------------------------------------------
 
 def num_range(s: str) -> List[int]:
@@ -42,7 +44,9 @@ def num_range(s: str) -> List[int]:
 @click.option('--class', 'class_idx', type=int, help='Class label (unconditional if not specified)')
 @click.option('--noise-mode', help='Noise mode', type=click.Choice(['const', 'random', 'none']), default='const', show_default=True)
 @click.option('--projected-w', help='Projection result file', type=str, metavar='FILE')
-@click.option('--outdir', help='Where to save the output images', type=str, required=True, metavar='DIR')
+@click.option('--outdir', help='Directory where the output images will be saved', type=str, required=True, metavar='DIR')
+@click.option('--traindir', help='Directory with the training images', type=str, required=True, metavar='DIR')
+@click.option('--noise_variance', type = float, default = 0, help="Variance of the Gaussian noise to be added to the model parameters")
 def generate_images(
     ctx: click.Context,
     network_pkl: str,
@@ -50,8 +54,10 @@ def generate_images(
     truncation_psi: float,
     noise_mode: str,
     outdir: str,
+    traindir: str,
     class_idx: Optional[int],
-    projected_w: Optional[str]
+    projected_w: Optional[str],
+    noise_variance: float,
 ):
     """Generate images using pretrained network pickle.
 
@@ -59,22 +65,22 @@ def generate_images(
 
     \b
     # Generate curated MetFaces images without truncation (Fig.10 left)
-    python generate.py --outdir=out --trunc=1 --seeds=85,265,297,849 \\
+    python generate.py --outdir=out --traindir=in --noise_variance=0.1 --trunc=1 --seeds=85,265,297,849 \\
         --network=https://nvlabs-fi-cdn.nvidia.com/stylegan2-ada-pytorch/pretrained/metfaces.pkl
 
     \b
     # Generate uncurated MetFaces images with truncation (Fig.12 upper left)
-    python generate.py --outdir=out --trunc=0.7 --seeds=600-605 \\
+    python generate.py --outdir=out --traindir=in --trunc=0.7 --seeds=600-605 \\
         --network=https://nvlabs-fi-cdn.nvidia.com/stylegan2-ada-pytorch/pretrained/metfaces.pkl
 
     \b
     # Generate class conditional CIFAR-10 images (Fig.17 left, Car)
-    python generate.py --outdir=out --seeds=0-35 --class=1 \\
+    python generate.py --outdir=out --traindir=in --noise_variance=0.2 --seeds=0-35 --class=1 \\
         --network=https://nvlabs-fi-cdn.nvidia.com/stylegan2-ada-pytorch/pretrained/cifar10.pkl
 
     \b
     # Render an image from projected W
-    python generate.py --outdir=out --projected_w=projected_w.npz \\
+    python generate.py --outdir=out --traindir=in --noise_variance=0.3 --projected_w=projected_w.npz \\
         --network=https://nvlabs-fi-cdn.nvidia.com/stylegan2-ada-pytorch/pretrained/metfaces.pkl
     """
 
@@ -82,6 +88,8 @@ def generate_images(
     device = torch.device('cuda')
     with dnnlib.util.open_url(network_pkl) as f:
         G = legacy.load_network_pkl(f)['G_ema'].to(device) # type: ignore
+
+    G = noise_metrics.add_noise(G, noise_variance) # Add Gaussian noise to network parameters
 
     os.makedirs(outdir, exist_ok=True)
 
@@ -119,6 +127,8 @@ def generate_images(
         img = G(z, label, truncation_psi=truncation_psi, noise_mode=noise_mode)
         img = (img.permute(0, 2, 3, 1) * 127.5 + 128).clamp(0, 255).to(torch.uint8)
         PIL.Image.fromarray(img[0].cpu().numpy(), 'RGB').save(f'{outdir}/seed{seed:04d}.png')
+
+    noise_metrics.calculate_metrics(outdir, traindir, noise_variance) # Calculate metrics and save them in [outdir]/desc.json
 
 
 #----------------------------------------------------------------------------
