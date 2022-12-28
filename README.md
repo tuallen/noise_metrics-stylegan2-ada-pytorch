@@ -1,8 +1,8 @@
-# [StyleGAN2-ADA-PyTorch](https://github.com/NVlabs/stylegan2-ada-pytorch) with [Image Generation and Evaluation](https://github.com/tuallen/noise_metrics-stylegan2-ada-pytorch) Pipeline
+# [StyleGAN2-ADA-PyTorch](https://github.com/NVlabs/stylegan2-ada-pytorch) with [Image Generation and Evaluation](https://github.com/harishanmugaraja/Evaluation-of-Generation-Metrics) Pipeline
 ### Allen Tu, Hari Shanmugaraja, Calle Carlson, Sathvik Ravi, Aminah Yizar, Yuming Huang
 ![Paper image](./docs/noise_metrics.png)
 
-Fork of [NVlabs/stylegan2-ada-pytorch](https://github.com/NVlabs/stylegan2-ada-pytorch) with the [Image Generation and Evaluation](https://github.com/harishanmugaraja/Evaluation-of-Generation-Metrics/tree/main/Image%20Generation%20and%20Evaluation) pipeline from [harishanmugaraja/Evaluation-of-Generation-Metrics](https://github.com/tuallen/noise_metrics-stylegan2-ada-pytorch). The pipeline for StyleGAN2's `generate.py` is as follows:
+Fork of [NVlabs/stylegan2-ada-pytorch](https://github.com/NVlabs/stylegan2-ada-pytorch) with the [Image Generation and Evaluation](https://github.com/harishanmugaraja/Evaluation-of-Generation-Metrics/tree/main/Image%20Generation%20and%20Evaluation) pipeline from [harishanmugaraja/Evaluation-of-Generation-Metrics](https://github.com/harishanmugaraja/Evaluation-of-Generation-Metrics). The pipeline for StyleGAN2's `generate.py` is as follows:
 
 1. ```noise_metrics.py``` is added to the source directory.
 3. ```import noise_metrics``` is added to the top of `generate.py`.
